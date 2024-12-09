@@ -1,11 +1,11 @@
 import re
 import requests
-from bs4 import BeautifulSoup
 from termcolor import colored
+from concurrent.futures import ThreadPoolExecutor
 
 def banner():
-    print(colored("""
-  _____   _             ___     __    __   ___               ___   _         _ 
+    print(colored(r"""
+  _____   _             ___     __    __   ___               ___   _         _
  |_   _| | |_    ___   / _ \   / _|  / _| / __|  ___   __   / __| (_)  _ _  | |
    | |   | ' \  / -_) | (_) | |  _| |  _| \__ \ / -_) / _| | (_ | | | | '_| | |
    |_|   |_||_| \___|  \___/  |_|   |_|   |___/ \___| \__|  \___| |_| |_|   |_|
@@ -14,22 +14,17 @@ def banner():
 
 def send_login_request(url, email, field_email, field_password, proxy=None):
     try:
-        # Datos para simular un login
         payload = {
             field_email: email,
-            field_password: 'fakepassword123'  # Contraseña falsa para el test
+            field_password: 'fakepassword123'
         }
-
-        # Encabezados comunes para evitar detección básica
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'Content-Type': 'application/x-www-form-urlencoded'
         }
-
         proxies = {"http": proxy, "https": proxy} if proxy else None
         response = requests.post(url, data=payload, headers=headers, timeout=10, proxies=proxies)
         return response.text
-
     except requests.exceptions.RequestException as e:
         print(colored(f"\n[!] Error al conectar con la URL: {e}", "red"))
         return None
@@ -44,25 +39,13 @@ def test_email_existence(url, email, field_email, field_password, invalid_string
             print(colored(f"[+] El email {email} está registrado.", "green"))
         else:
             print(colored(f"[?] Resultado indeterminado para {email}. Revisa manualmente.", "blue"))
+            print(colored(f"[DEBUG] Respuesta recibida: {response_text[:500]}...", "magenta"))
     else:
         print(colored(f"[!] No se pudo obtener respuesta para {email}.", "red"))
-
-def load_emails_from_file(file_path):
-    try:
-        with open(file_path, 'r') as file:
-            emails = [line.strip() for line in file.readlines()]
-            return emails
-    except FileNotFoundError:
-        print(colored(f"[!] No se pudo encontrar el archivo: {file_path}", "red"))
-        return []
-    except Exception as e:
-        print(colored(f"[!] Error al leer el archivo: {e}", "red"))
-        return []
 
 def main():
     banner()
     url = input(colored("\nIngresa la URL del formulario de login: ", "cyan")).strip()
-
     if not url.startswith("http://") and not url.startswith("https://"):
         url = "http://" + url
 
@@ -84,9 +67,14 @@ def main():
         email_list = [email.strip() for email in email_list]
     elif email_source == '2':
         file_path = input(colored("\nIngresa la ruta del archivo con la lista de emails: ", "cyan")).strip()
-        email_list = load_emails_from_file(file_path)
+        try:
+            with open(file_path, 'r') as file:
+                email_list = [line.strip() for line in file.readlines()]
+        except Exception as e:
+            print(colored(f"[!] Error al leer el archivo: {e}", "red"))
+            return
     else:
-        print(colored("[!] Opcion no valida. Saliendo.", "red"))
+        print(colored("[!] Opción no válida. Saliendo.", "red"))
         return
 
     if not email_list:
@@ -95,9 +83,10 @@ def main():
 
     print(colored("\n[+] Probando emails en la URL: ", "green"), url)
 
-    for email in email_list:
-        print(colored(f"\n[*] Probando email: {email}", "yellow"))
-        test_email_existence(url, email, field_email, field_password, invalid_strings, valid_strings, proxy)
+    with ThreadPoolExecutor() as executor:
+        for email in email_list:
+            print(colored(f"\n[*] Probando email: {email}", "yellow"))
+            executor.submit(test_email_existence, url, email, field_email, field_password, invalid_strings, valid_strings, proxy)
 
 if __name__ == "__main__":
     main()
