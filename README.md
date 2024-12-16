@@ -13,12 +13,12 @@ Características
 
 ## Requisitos
 
-    - Python 3.7 o superior.
+ Python 3.7 o superior.
    ### Las siguientes dependencias:
    
-        requests
-        termcolor
-        concurrent.futures (incluido en Python estándar)
+ requests
+ termcolor
+ concurrent.futures (incluido en Python estándar)
 
 Puedes instalar las dependencias ejecutando:
 
@@ -26,9 +26,9 @@ Puedes instalar las dependencias ejecutando:
 
 ## Instalación
 
-    Clona este repositorio:
+ Clona este repositorio:
 
-git clone https://github.com/TheOffSecGirl/TheMailWebEnum.git
+`git clone https://github.com/TheOffSecGirl/TheMailWebEnum.git`
 
 Navega al directorio del proyecto:
 
