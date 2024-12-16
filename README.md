@@ -3,25 +3,26 @@
 TheMailWebEnum es un script Python diseñado para probar si un correo electrónico está registrado en un formulario de login web vulnerable. Este proyecto permite realizar pruebas utilizando técnicas de enumeración basadas en las respuestas del servidor.
 Características
 
-    Interfaz interactiva para configurar la prueba.
-    Soporte para detectar emails registrados o no registrados mediante cadenas personalizadas.
-    Opción para usar proxy en las solicitudes.
-    Entrada manual de emails o carga desde un archivo.
-    Ejecución concurrente para mejorar la velocidad.
-    Manejo seguro de interrupciones (Ctrl+C) para detener la ejecución sin errores.
-    Depuración opcional para analizar respuestas del servidor.
+ - Interfaz interactiva para configurar la prueba.
+ -  Soporte para detectar emails registrados o no registrados mediante cadenas personalizadas.
+ - Opción para usar proxy en las solicitudes.
+ - Entrada manual de emails o carga desde un archivo.
+ - Ejecución concurrente para mejorar la velocidad.
+ - Manejo seguro de interrupciones (Ctrl+C) para detener la ejecución sin errores.
+ - Depuración opcional para analizar respuestas del servidor.
 
 ## Requisitos
 
-    Python 3.7 o superior.
-    Las siguientes dependencias:
+    - Python 3.7 o superior.
+   ### Las siguientes dependencias:
+   
         requests
         termcolor
         concurrent.futures (incluido en Python estándar)
 
 Puedes instalar las dependencias ejecutando:
 
-pip install requests termcolor
+`pip install requests termcolor`
 
 ## Instalación
 
@@ -33,21 +34,21 @@ Navega al directorio del proyecto:
 
     cd TheMailWebEnum
 
-    Asegúrate de que los requisitos estén instalados.
+    //Asegúrate de que los requisitos estén instalados.
 
 ## Uso
 
 Ejecuta el script usando:
 
-python3 TheMailWebEnum.py
+`python3 TheMailWebEnum.py`
 
 ### Configuración interactiva
 
-    URL del formulario: Introduce la URL del formulario de login que deseas probar.
-    Campos del formulario: Especifica los nombres de los campos para el email y la contraseña (por defecto: email y password).
-    Cadenas de respuesta: Ingresa cadenas que indiquen si un email es válido o inválido (por ejemplo, "no existe" para inválido, "contraseña incorrecta" para válido).
-    Proxy (opcional): Proporciona un proxy en formato http://ip:puerto si necesitas enviar solicitudes a través de uno.
-    Emails: Puedes introducir emails manualmente o cargar una lista desde un archivo.
+- URL del formulario: Introduce la URL del formulario de login que deseas probar.
+- Campos del formulario: Especifica los nombres de los campos para el email y la contraseña (por defecto: email y password).
+-  Cadenas de respuesta: Ingresa cadenas que indiquen si un email es válido o inválido (por ejemplo, "no existe" para inválido, "contraseña incorrecta" para válido).
+- Proxy (opcional): Proporciona un proxy en formato http://ip:puerto si necesitas enviar solicitudes a través de uno.
+- Emails: Puedes introducir emails manualmente o cargar una lista desde un archivo.
 
 ### Manejo de interrupciones
 
