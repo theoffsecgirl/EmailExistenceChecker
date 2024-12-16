@@ -1,7 +1,9 @@
 import re
 import requests
 from termcolor import colored
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import signal
+import sys
 
 def banner():
     print(colored(r"""
@@ -12,12 +14,17 @@ def banner():
                                      by TheOffSecGirl
     """, "cyan"))
 
+# Captura de señal para manejar Ctrl+C
+def signal_handler(sig, frame):
+    print(colored("\n[!] Interrupción detectada. Saliendo del programa.", "red"))
+    sys.exit(0)
+
+# Configurar señal
+signal.signal(signal.SIGINT, signal_handler)
+
 def send_login_request(url, email, field_email, field_password, proxy=None):
     try:
-        payload = {
-            field_email: email,
-            field_password: 'fakepassword123'
-        }
+        payload = {field_email: email, field_password: 'fakepassword123'}
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -26,22 +33,20 @@ def send_login_request(url, email, field_email, field_password, proxy=None):
         response = requests.post(url, data=payload, headers=headers, timeout=10, proxies=proxies)
         return response.text
     except requests.exceptions.RequestException as e:
-        print(colored(f"\n[!] Error al conectar con la URL: {e}", "red"))
-        return None
+        return f"[ERROR] {e}"
 
 def test_email_existence(url, email, field_email, field_password, invalid_strings, valid_strings, proxy):
     response_text = send_login_request(url, email, field_email, field_password, proxy)
 
-    if response_text:
-        if any(err.lower() in response_text.lower() for err in invalid_strings):
-            print(colored(f"[-] El email {email} no está registrado.", "yellow"))
-        elif any(success.lower() in response_text.lower() for success in valid_strings):
-            print(colored(f"[+] El email {email} está registrado.", "green"))
-        else:
-            print(colored(f"[?] Resultado indeterminado para {email}. Revisa manualmente.", "blue"))
-            print(colored(f"[DEBUG] Respuesta recibida: {response_text[:500]}...", "magenta"))
+    if not response_text:
+        return f"[!] No se pudo obtener respuesta para {email}."
+
+    if any(err.lower() in response_text.lower() for err in invalid_strings):
+        return f"[-] El email {email} no está registrado."
+    elif any(success.lower() in response_text.lower() for success in valid_strings):
+        return f"[+] El email {email} está registrado."
     else:
-        print(colored(f"[!] No se pudo obtener respuesta para {email}.", "red"))
+        return f"[?] Resultado indeterminado para {email}. Revisar manualmente."
 
 def main():
     banner()
@@ -82,11 +87,22 @@ def main():
         return
 
     print(colored("\n[+] Probando emails en la URL: ", "green"), url)
+    results = []
 
-    with ThreadPoolExecutor() as executor:
-        for email in email_list:
-            print(colored(f"\n[*] Probando email: {email}", "yellow"))
-            executor.submit(test_email_existence, url, email, field_email, field_password, invalid_strings, valid_strings, proxy)
+    try:
+        with ThreadPoolExecutor(max_workers=10) as executor:  # Limita el número de hilos a 10
+            future_to_email = {executor.submit(test_email_existence, url, email, field_email, field_password, invalid_strings, valid_strings, proxy): email for email in email_list}
+            for future in as_completed(future_to_email):
+                result = future.result()
+                results.append(result)
+                print(colored(result, "cyan"))
+
+        # Guardar resultados
+        with open("resultado_enum.txt", "w") as output_file:
+            output_file.write("\n".join(results))
+        print(colored("\n[+] Resultados guardados en 'resultado_enum.txt'.", "green"))
+    except KeyboardInterrupt:
+        print(colored("\n[!] Proceso interrumpido por el usuario. Cerrando hilos...", "red"))
 
 if __name__ == "__main__":
     main()
